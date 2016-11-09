@@ -8,8 +8,9 @@ let mode = process.argv[2];
 
 let help = () => {
     console.log('Valid commands:\n\n' +
-        'node index seek ./field/ ./pokemons.json\n' +
-        'node index hide ./field/');
+        'node index hide ./field/ ./pokemons.json\n' +
+        'node index seek ./field/'
+    );
 };
 
 switch (mode) {

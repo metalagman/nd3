@@ -15,17 +15,19 @@ const hide = (path, list) => {
         selected.push(list.shift());
     }
     return (new Promise((resolve, reject) => {
-        let result = [];
+        let all = [];
         for (let i = 1; i<=10; i++) {
-            let dir = path + '/' + ("0" + i).slice(-2);
-            try {
-                fs.mkdirSync(dir);
-            } catch(e) {
-                if ( e.code != 'EEXIST' ) reject(e);
-            }
-            result.push(dir);
+            all.push(new Promise((resolve, reject) => {
+                let dir = path + '/' + ("0" + i).slice(-2);
+                fs.mkdir(dir, err => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve(dir)
+                });
+            }));
         }
-        resolve(result);
+        resolve(Promise.all(all));
     })).then(dirs => {
         dirs = shuffle(dirs);
         dirs = dirs.slice(0, 3);
