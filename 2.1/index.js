@@ -13,6 +13,10 @@ class Api {
         return url.parse(request.url, true).query;
     }
 
+    static _parsePath(request) {
+        return url.parse(request.url).pathname;
+    }
+
     static register(request, response) {
         let query = this._parseQuery(request);
         let row = {
@@ -36,7 +40,7 @@ class Api {
             response.end();
             return;
         }
-        row.amount += query.amount;
+        row.amount += parseInt(query.amount);
         response.end(JSON.stringify({
                 id: query.id,
                 name: row.name,
@@ -53,7 +57,7 @@ class Api {
             response.end();
             return;
         }
-        row.amount -= query.amount;
+        row.amount -= parseInt(query.amount);
         response.end(JSON.stringify({
                 id: query.id,
                 name: row.name,
@@ -69,17 +73,18 @@ class Api {
 
 server.on('request', (request, response) => {
     response.setHeader('Content-Type', 'application/json');
-    switch (request.method) {
-        case 'GET':
+
+    switch (Api._parsePath(request)) {
+        case '/':
             Api.list(request, response);
             break;
-        case 'POST':
+        case '/register':
             Api.register(request, response);
             break;
-        case 'PUT':
+        case '/add':
             Api.add(request, response);
             break;
-        case 'DELETE':
+        case '/remove':
             Api.remove(request, response);
             break;
         default:
