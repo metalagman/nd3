@@ -1,5 +1,9 @@
 class UserRepository {
     constructor() {
+        this.reset();
+    }
+
+    reset() {
         this.lastId = 0;
         this.storage = {};
     }

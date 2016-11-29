@@ -1,3 +1,4 @@
+"use strict";
 const UserRepository = require('./user_repository');
 const User = require('./user');
 const router = require('express').Router();
@@ -9,7 +10,30 @@ class RestApi {
 
     index(request, response) {
         console.log('api index');
-        response.json(this.repository.fetchAll());
+        let data = this.repository.fetchAll();
+
+        const offset = request.query.offset;
+        if (offset && offset > 0) {
+            data.splice(0, offset);
+        }
+
+        const limit = request.query.limit;
+        if (limit > 0 && limit < data.length) {
+            data = data.slice(0, limit);
+        }
+
+        const fields = request.query.fields;
+        if (fields) {
+            let keepFields = fields.split(',');
+            data.map(item => {
+                Object.keys(item).map(key => {
+                    if (keepFields.indexOf(key) == -1) {
+                        delete item[key];
+                    }
+                })
+            })
+        }
+        response.json(data);
     }
 
     create(request, response) {
@@ -60,14 +84,21 @@ class RestApi {
             response.status(404).send('Not found');
         }
     }
+
+    reset(request, response) {
+        console.log('api remove');
+        this.repository.reset();
+        response.status(204).send();
+    }
 }
 
 let api = new RestApi();
 
-router.get('/users', (request, response) => api.index(request, response));
-router.post("/users", (request, response) => api.create(request, response));
-router.get("/users/:id", (request, response) => api.view(request, response));
-router.put("/users/:id", (request, response) => api.update(request, response));
-router.delete("/users/:id", (request, response) => api.remove(request, response));
+router.delete("/users/all", api.reset.bind(api));
+router.get('/users', api.index.bind(api));
+router.post("/users", api.create.bind(api));
+router.get("/users/:id", api.view.bind(api));
+router.put("/users/:id", api.update.bind(api));
+router.delete("/users/:id", api.remove.bind(api));
 
 module.exports = router;
