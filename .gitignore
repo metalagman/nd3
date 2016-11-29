@@ -33,3 +33,6 @@ tests/_output/*
 
 # Testing stuff
 _generated
+
+node_modules
+npm-debug.log
