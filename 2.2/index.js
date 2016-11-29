@@ -2,10 +2,12 @@ const app = require('express')();
 const bp = require('body-parser');
 
 const rest = require('./api_rest');
+const rpc = require('./api_rpc');
 
 app.use(bp.json());
 
 app.use('/rest', rest);
+app.use('/rpc', rpc);
 
 app.use(function (err, req, res, next) {
     console.error(err.stack);

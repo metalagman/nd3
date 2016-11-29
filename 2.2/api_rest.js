@@ -1,82 +1,6 @@
-"use strict";
-
-let router = require('express').Router();
-
-class User {
-    constructor(name, score) {
-        this.id = null;
-        this.name = name;
-        this.score = score;
-    }
-
-    validate() {
-        return !(
-            typeof this.name != 'string'
-            || this.name.length == 0
-            || typeof this.score != 'number'
-        );
-    }
-}
-
-class UserRepository {
-    constructor() {
-        this.lastId = 0;
-        this.storage = {};
-    }
-
-    /**
-     * @param {User} user
-     * @return {int}
-     */
-    insert(user) {
-        this.lastId++;
-        user.id = this.lastId;
-        this.storage[user.id] = user;
-    }
-
-    /**
-     * @param id
-     * @return {User}|null
-     */
-    fetch(id) {
-        if (!this.storage[id]) {
-            return null;
-        } else {
-            return this.storage[id];
-        }
-    }
-
-    fetchAll() {
-        return Object.keys(this.storage).map(key => this.storage[key]);
-    }
-
-    /**
-     * @param {int} id
-     * @param {User} user
-     * @return {boolean}
-     */
-    replace(id, user) {
-        if (!this.storage[id]) {
-            return false;
-        } else {
-            this.storage[id] = user;
-            return true;
-        }
-    }
-
-    /**
-     * @param id
-     * @return {boolean}
-     */
-    remove(id) {
-        if (!this.storage[id]) {
-            return false;
-        } else {
-            delete this.storage[id];
-            return true;
-        }
-    }
-}
+const UserRepository = require('./user_repository');
+const User = require('./user');
+const router = require('express').Router();
 
 class RestApi {
     constructor() {
@@ -95,7 +19,7 @@ class RestApi {
             response.status(422).send('Validation error');
         } else {
             this.repository.insert(model);
-            response.json(model);
+            response.status(201).json(model);
         }
     }
 
