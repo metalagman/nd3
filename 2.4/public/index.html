@@ -1,0 +1,132 @@
+<!doctype html>
+<html>
+<head>
+    <title>Socket.IO chat</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font: 13px Helvetica, Arial; padding: 16px }
+        form { position: fixed; bottom: 0; }
+        #messages { list-style-type: none; margin: 0; padding: 0; }
+        #messages li { padding: 5px 10px; }
+        #messages li:nth-child(odd) { background: #eee; }
+    </style>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+</head>
+<body>
+<div class="container">
+    <a id="join-channel" href="#join-channel" class="btn btn-default">Войти</a>
+    <hr/>
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist" id="channel-navs"></ul>
+    <!-- Tab panes -->
+    <div class="tab-content" id="channel-tabs"></div>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script>
+    String.prototype.replaceAll = function(search, replacement) {
+        let target = this;
+        return target.replace(new RegExp(search, 'g'), replacement);
+    };
+
+    let nickname = '';
+    let socket = io();
+    $(window).load(() => {
+        while (!nickname.length) {
+            nickname = prompt('Please select nickname');
+        }
+        $(document).on('submit', 'form', function() {
+            let self = $(this);
+            let input = self.find('input[name=message]');
+            let text = input.val();
+            if (!text.length) {
+                return;
+            }
+            let channel = self.closest('.tab-pane').data('channel');
+            let msg = {
+                nickname,
+                channel,
+                text
+            };
+            socket.emit('chat.message', msg);
+            input.val('');
+            return false;
+        });
+        socket.on('chat.message', function(msg){
+            $(`#tab-${msg.channel} ul.messages`).append($('<li>').text(`${msg.nickname} написал: ${msg.text}`));
+        });
+    });
+    socket.on('connect', () => {
+        console.log('connected to server');
+        socket.emit('channel.join', {
+            nickname,
+            channel: 'nd3',
+        });
+    });
+    socket.on('channel.joined', (msg) => {
+        console.log(`${msg.nickname} joined ${msg.channel}`);
+        if (msg.nickname == nickname) {
+            joinChannel(msg.channel);
+        }
+        $(`#tab-${msg.channel} ul.messages`).append($('<li>').text(`${msg.nickname} зашел на канал ${msg.channel}`));
+    });
+    socket.on('channel.parted', (msg) => {
+        console.log(`${msg.nickname} parted ${msg.channel}`);
+        if (msg.nickname == nickname) {
+            partChannel(msg.channel);
+        }
+        $(`#tab-${msg.channel} ul.messages`).append($('<li>').text(`${msg.nickname} вышел с канала ${msg.channel}`));
+    });
+
+    const joinChannel = (channel) => {
+        let html = $("#channel-nav-tpl").html();
+        html = html.replaceAll('{{channel}}', channel);
+        $("#channel-navs").append(html);
+        html = $("#channel-tab-tpl").html();
+        html = html.replaceAll('{{channel}}', channel);
+        $("#channel-tabs").append(html);
+
+        if (!$("#channel-navs li.active").length) {
+            $("#channel-navs li:first").addClass('active');
+            $("#channel-tabs div:first").addClass('active');
+        }
+    };
+
+    const partChannel = (channel) => {
+        $(`#channel-navs li[data-channel=${channel}]`.remove());
+        $(`#channel-tabs div[data-channel=${channel}]`.remove());
+    };
+
+    $("#join-channel").click(() => {
+        let channel = prompt('Какой канал?', '');
+        if (channel.length == 0) {
+            return;
+        }
+        socket.emit('channel.join', {
+            nickname,
+            channel
+        });
+    })
+
+</script>
+<script type="text/template" id="channel-nav-tpl">
+    <li role="presentation"><a data-channel="{{channel}}" href="#tab-{{channel}}" aria-controls="{{channel}}" role="tab" data-toggle="tab">{{channel}}</a></li>
+</script>
+<script type="text/template" id="channel-tab-tpl">
+    <div data-channel="{{channel}}" role="tabpanel" class="tab-pane" id="tab-{{channel}}">
+        <ul class="messages"></ul>
+        <form class="form-inline well">
+            <div class="form-group">
+                <input type="text" class="form-control" placeholder="Сообщение" name="message">
+            </div>
+            <button type="submit" class="btn btn-default">Отправить</button>
+        </form>
+    </div>
+</script>
+</body>
+</html>
