@@ -46,14 +46,16 @@ client.connect(config.mongo.db, (err, db) => {
                     }
                 });
 
-                console.log('Удаляем всех петров');
                 collection.deleteMany({full_name: "Petr Petrov"}).then(result => {
-                    console.log(`Удалено: ${result.deletedCount}`);
+                    console.log(`Удалено всех петров: ${result.deletedCount}`);
                 });
 
-                console.log('Меняем скайп всем сидорам');
                 collection.updateMany({full_name: "Sidor Sidorov"}, {$set: {skype: 'testskype'}}).then(result => {
-                    console.log(`Изменено: ${result.modifiedCount}`);
+                    console.log(`Изменен скайп всем сидорам: ${result.modifiedCount}`);
+                });
+
+                collection.removeMany().then(result => {
+                    console.log(`Удалены все: ${result.deletedCount}`);
                 });
             }
         })
