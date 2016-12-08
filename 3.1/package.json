@@ -1,0 +1,14 @@
+{
+  "name": "mongo-basics",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Alexey Samoylov <alexey.samoylov@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "mongodb": "^2.2.12"
+  }
+}
