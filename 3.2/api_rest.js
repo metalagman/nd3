@@ -31,24 +31,24 @@ class RestApi {
             let conditions = [];
             console.log(req.body);
             if (req.body.phone) {
-                conditions.push({phone: {$regex: `/${req.body.phone}/`}});
+                conditions.push({phone: {$regex: req.body.phone}});
             }
             if (req.body.first_name) {
-                conditions.push({first_name: {$regex: `/${req.body.first_name}/`}});
+                conditions.push({first_name: {$regex: req.body.first_name}});
             }
             if (req.body.last_name) {
-                conditions.push({last_name: {$regex: `/${req.body.last_name}/`}});
+                conditions.push({last_name: {$regex: req.body.last_name}});
             }
-            let search = {}
+            let search = {};
             if (conditions.length > 0) {
-                search = {$or: conditions}
+                search = {$or: conditions};
             }
             console.log(JSON.stringify(search));
             return collection.find(search).toArray();
         }).then(data => {
             res.send(data);
         }).catch(err => {
-            res.status(500).send('Api error');
+            res.status(500).send('Api error: ' + err.toString());
         });
     }
 
