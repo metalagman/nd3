@@ -170,6 +170,32 @@ const assignTask =  (req, res) => {
     });
 };
 
+const findTask = (req, res) => {
+    let conditions = [];
+    console.log(req.body);
+    if (req.body.name) {
+        conditions.push({name: {$regex: req.body.name}});
+    }
+    if (req.body.description) {
+        conditions.push({name: {$regex: req.body.description}});
+    }
+    if (req.body.last_name) {
+        conditions.push({last_name: {$regex: req.body.last_name}});
+    }
+    let search = {};
+    if (conditions.length > 0) {
+        search = {$or: conditions};
+    }
+
+    User.find(search, function(err, data) {
+        if (err) {
+            res.status(500).send('Api error: ' + err.toString());
+        } else {
+            res.json(data);
+        }
+    });
+};
+
 module.exports = (config) => {
     mongoose.connect(config.mongo.db);
 
@@ -188,7 +214,8 @@ module.exports = (config) => {
 
     router.post('/tasks/:task_id/open', openTask);
     router.post('/tasks/:task_id/close', closeTask);
-    router.post('/tasks/:task_id/assign/:user_id', assignTask());
+    router.post('/tasks/:task_id/assign/:user_id', assignTask);
+    router.post('/tasks/search', findTask);
 
     return router;
 };
